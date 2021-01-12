@@ -6,7 +6,7 @@
 </head>
 <body>
   <?php
-    echo "Hello World!";
+    <?php include ("nav.php"); ?>
   ?>
 </body>
 </html>
