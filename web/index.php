@@ -5,8 +5,6 @@
 <title>Page Title</title>
 </head>
 <body>
-  <?php
-    <?php include ("nav.php"); ?>
-  ?>
+  <?php include ("nav.php"); ?>
 </body>
 </html>
