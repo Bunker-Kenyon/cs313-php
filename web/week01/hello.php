@@ -1,3 +1,14 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <link rel="stylesheet" type="text/css" href="stickyNotes.css">
+    
+<title>Page Title</title>
+</head>
+<body>
+  <?php include(dirname(__DIR__).'/rsc/nav.php'); ?>
+
  <ul>
     <li>
       <a href="#">
@@ -37,3 +48,6 @@
     </li>
     </li>
   </ul>
+
+</body>
+</html>

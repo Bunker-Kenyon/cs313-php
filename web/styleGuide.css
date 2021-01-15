@@ -1,0 +1,25 @@
+.navbar {
+    overflow: hidden;
+    background-color: #333;
+}
+
+body {
+    font-family: "Comic Sans MS", cursive, sans-serif;
+    background-image: url(media/stargate.png);
+    background-repeat:repeat-n;
+	background-position: center;
+    color: black;
+}
+
+div {
+    border-radius: 5px;
+    padding: 20px;
+    background-color: rgb(120, 150, 216);
+    
+}
+
+/* Make the image fully responsive */
+.carousel-inner img {
+    width: 50%;
+    height: 50%;
+  }
