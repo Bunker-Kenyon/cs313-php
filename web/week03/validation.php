@@ -7,7 +7,6 @@
     $_SESSION['userinfo']=array();
 
     
-
     if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $name = test_input($_POST["full_name"]);
         $street1 = test_input($_POST["street1"]);
@@ -68,7 +67,7 @@
     /* State */
     if ($_SERVER["REQUEST_METHOD"] == "POST") {
         if (empty($_POST["state"])) {
-            //$stateErr = "State is required";
+            //do nothing
           } else {
             $state = test_input($_POST["state"]);
             array_push($_SESSION['userinfo'], $state);
@@ -88,13 +87,13 @@
           }
     }
 
-    if (empty($_POST["zip"]) or empty($_POST["zip"]) or empty($_POST["zip"]) or empty($_POST["zip"]))
+    if (empty($_POST["full_name"]) or empty($_POST["street1"]) or empty($_POST["city"]) or empty($_POST["zip"]))
     {
         $validInputs = false;
     }
 
     if ($validInputs === true) {
-        //echo 'redirect';
+
         header("Location: confirmation.php");
         exit();
     }
