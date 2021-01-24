@@ -58,15 +58,12 @@
         //Product cards
 
         if ( isset($_POST["add1"]) ) {
-            echo "add1 was clicked";
             array_push($_SESSION['cart'], $stargate_W_DHD);
         }
         if ( isset($_POST["add2"]) ) {
-            echo "add2 was clicked";
             array_push($_SESSION['cart'], $SG1_Hoodie);
         }
         if ( isset($_POST["add3"]) ) {
-            echo "add3 was clicked";
             array_push($_SESSION['cart'], $SG_ActionFigureSet);
         }
 
@@ -89,7 +86,6 @@
                     <h5 class="card-title"><?php echo $stargate_W_DHD->getName() ?></h5>
                     <p class="card-text">Price: $<?php echo $stargate_W_DHD->getPrice()?></p>
                     <p class="card-text"><?php echo $stargate_W_DHD->getDescription()?></p>
-                    <!-- <a href="?add1=" class="btn btn-primary">Add to cart</a> -->
                     <input type="submit" name="add1" value="Add to cart" class="btn btn-primary"/>
                 </div>
             </div>
@@ -101,7 +97,6 @@
                         <h5 class="card-title"><?php echo $SG1_Hoodie->getName() ?></h5>
                         <p class="card-text"><?php echo $SG1_Hoodie->getPrice() ?></p>
                         <p class="card-text"><?php echo $SG1_Hoodie->getDescription() ?></p>
-                        <!-- <a href="?add2=" class="btn btn-primary">Add to cart</a> -->
                         <input type="submit" name="add2" value="Add to cart" class="btn btn-primary"/>
                     </div>
                 </div>
@@ -113,7 +108,6 @@
                         <h5 class="card-title"><?php echo $SG_ActionFigureSet->getName() ?></h5>
                         <p class="card-text"><?php echo $SG_ActionFigureSet->getPrice() ?></p>
                         <p class="card-text"><?php echo $SG_ActionFigureSet->getDescription() ?></p>
-                        <!-- <a href="?add3=" class="btn btn-primary">Add to cart</a> -->
                         <input type="submit" name="add3" value="Add to cart" class="btn btn-primary"/>
                     </div>
                 </div>
