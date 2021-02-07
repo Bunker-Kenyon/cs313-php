@@ -6,7 +6,7 @@
     font-family:"Comic Sans MS", cursive, sans-serif;
     font-size:100%;
     margin:1em;
-    background:#666;
+    background-image: url("corkboard.jpg");
     color:#fff;
   }
   h2,p{
@@ -25,8 +25,8 @@
     color:#000;
     background:#ffc;
     display:block;
-    height:10em;
-    width:10em;
+    height:auto;
+    width:auto;
     padding:1em;
     -moz-box-shadow:5px 5px 7px rgba(33,33,33,1);
     -webkit-box-shadow: 5px 5px 7px rgba(33,33,33,.7);
@@ -40,13 +40,13 @@
     float:left;
   }
   ul li h2{
-    font-size:240%;
+    font-size:120%;
     font-weight:bold;
     padding-bottom:10px;
   }
   ul li p{
     font-family:"Reenie Beanie",arial,sans-serif;
-    font-size:180%;
+    font-size:100%;
   }
   ul li a{
     -webkit-transform: rotate(-6deg);
