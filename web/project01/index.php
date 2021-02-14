@@ -15,7 +15,7 @@ if (isset($_POST['submit'])) {
     extract($_POST);
  
     if (!empty($email) && !empty($password)) {
-        $statement = "SELECT id  FROM public.user WHERE email = ".  $db->quote($email) . " AND password = ". $db->quote($password)."";
+        $statement = "SELECT id  FROM public.users WHERE email = ".  $db->quote($email) . " AND password = ". $db->quote($password)."";
         $result = $db->query($statement);
   
         if ($result->rowCount() > 0) {

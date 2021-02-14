@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <link rel="stylesheet" type="text/css" href="stickyNotes.css">
+    
+<title>Page Title</title>
+</head>
+<body>
+    <table>
+        <tr>
+          <th>Chore Name</th>
+          <th>Description</th>
+          <th>XP Reward</th>
+          <th>Reward</th>
+        </tr>
+        <tr>
+          <td>January</td>
+          <td>$100</td>
+        </tr>
+        <tr>
+          <td>February</td>
+          <td>$80</td>
+          <td><button type="submit" name="delete_reward" . $rowNum . class="btn btn-primary">Delete</button></td>
+        </tr>
+        <tr>
+          <td><input type="text" id="chore_name" name="chore_name"></td>
+          <td><input type="text" id="chore_description" name="chore_description"></td>
+          <td><input type="number" id="xp_reward" name="chore_xp_reward"></td>
+          <td><button type="submit" name="delete_reward" . $row['reward_id'] . " Delete</button></td>
+          <td><select id="rewards">
+            <option value="item-1">Reward 1</option>
+            <option value="item-2">REward 2</option>
+            <option value="item-3">Reward 3</option>
+            <option value="item-4">Reward 4</option>
+          </select></td>
+          <td><input class="form-control" type="text" id="inputdefault" name="reward_name_input"></td>
+        </tr>
+        <input type="text" id="reward_name_input" name="reward_name_input">
+        <input type="text" id="reward_description_input" name="reward_description_input">
+      </table>
+
+         <!-- <form method="post" action="">
+    <h2>Add a new chore</h2>
+    <input type="text" id="chore_name" name=chore_name placeholder="Name of chore"><br>
+    <input type="text" id="chore_description" name="chore_description" placeholder="description"><br>
+    <select name="rewards" id="rewards"> 
+        <option value="Walk with family">
+        <option value="Go on an adventure">
+        <option value="1 hour computer time">
+    </select>
+    <input type="number" id=xp_reward name="xp_reward" placeholder="XP Reward"><br>
+    <select name="assign_to_user" id="assign_to_user"> 
+        <option value="leave unassigned">
+        <option value="Dad">
+        <option value="Mom">
+        <option value="Alvin">
+    </select>
+</form>
+
+<form method="post" action="">  
+</form> -->
+
+
+
+</body>
+</html>

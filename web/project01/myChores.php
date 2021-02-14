@@ -16,13 +16,13 @@
 
  <ul>
   <?php
-  $user = 'Derek';
+  //$user = 'Derek';
     $statement = $db->prepare(
-      'SELECT chores.name, description, public.user.display_name
+      'SELECT chores.name, description, public.users.display_name
       FROM chores
-      LEFT JOIN public.user
-      ON chores.assigned_to_user=public.user.id
-	  WHERE public.user.display_name=\'Derek\' --Need to put variable here
+      LEFT JOIN public.users
+      ON chores.assigned_to_user_id=public.users.id
+	  WHERE public.users.display_name=\'Derek\' --Need to put variable here
       ORDER BY chores.name;');
     $statement->execute();
 
