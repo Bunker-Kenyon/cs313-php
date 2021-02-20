@@ -5,7 +5,11 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" type="text/css" href="stickyNotes.css">
 
-    <title>Page Title</title>
+    <title>Chore Board: Libraries</title>
+
+    <style>
+    .error {color: #FF0000;}
+</style>
 </head>
 
 <body>
@@ -13,19 +17,163 @@
     include(dirname(__DIR__) . '/rsc/nav.php');
     include(dirname(__DIR__) . '/rsc/dbConnection.php');
     $db = get_db();
-
+    session_start();
+    if (!isset($_SESSION['userId'])) {
+        header('Location: index.php');
+        exit();
+      }
+    $householdID = $_SESSION['userHouseholdID'];
 
     ?>
     <?php include("choreBoardNav.php");?>
 
+    
+
+    <!-- Start Rewards Table-->
+    <h1 style="background-image: url('Darkwood_Plank.jpg')">Reward Library</h1>
+    <h2> Rewards can be anything from somthing as simple as a "walk with the Family" to something like a new toy. What ever motivates you or your child to get thigns done.</h2>
+    <h2>To make updates, edit the text and click the "udpate" button for the row you want to update.</h2>
+    <form id="rewardsForm" method="post" action="choreLibrary.php">
+        <table class="table">
+            <thead>
+                <th scope="col">Reward</th>
+                <th scope="col">Description</th>
+                <th scope="col">Action</th>
+            </thead>
+
+            <?php
+            $rewardstatement = $db->prepare(
+                'SELECT reward_library.reward_id, reward_library.reward_name, reward_library.description, household.id, 
+                        household.name_of_household
+                        FROM reward_library
+                        LEFT JOIN public.household
+                        ON reward_library.household_id=household.id
+                        Where household.id = ' . $householdID . '
+                        ORDER BY reward_library.reward_name'
+            );
+            $rewardstatement->execute();
+
+
+            $rewardIDBtns = []; //Array for dynamic delete button names
+            $rewardUpdateBtns = []; //array for dyanmic update buttons
+            $rewardIDs = [];    //Array for available reward ids
+            $updateRewardNames = [];
+            $updateRewardDescriptions = [];
+
+            //Creates the table with buttons
+            while ($row = $rewardstatement->fetch(PDO::FETCH_ASSOC)) {
+                //builds dynamic buttons
+                array_push($rewardIDBtns, "delete_reward" . $row['reward_id']);
+                array_push($rewardUpdateBtns, "update_reward" . $row['reward_id']);
+                array_push($rewardIDs, $row['reward_id']);
+                array_push($updateRewardNames, $row['reward_name']);
+                array_push($updateRewardDescriptions, $row['description']);
+
+                //Variables for form input data
+                $rewardID = "delete_reward" . $row['reward_id'];
+                $rewardUpdateBtn = "update_reward" . $row['reward_id'];
+                $updateRewardName = "reward_name_input" . $row['reward_id'];
+                $updateRewardDescription = "reward_description_input" . $row['reward_id'];
+                $valueName = $row['reward_name'];
+                $valueDescription = $row['description'];
+
+                echo "
+                        <tr>
+                            <td><input class=\"form-control\" type=\"text\" id=\"inputdefault\" name=$updateRewardName value=\"" . $valueName . "\"></td>
+                            <td><input class=\"form-control\" type=\"text\" id=\"inputdefault\" name=$updateRewardDescription value=\"" . $valueDescription . "\"></td>
+                            <td><button type=\"submit\" class=\"btn btn-danger\" name=$rewardID>Delete</button><span> - </span><button type=\"submit\" class=\"btn btn-warning\" name=$rewardUpdateBtn>Update</button></td>
+                        </tr>
+                    ";
+            }
+            ?>
+
+            <!-- Start new rewards input -->
+            <tr>
+                <td><input class="form-control" type="text" id="inputdefault" name="reward_name_input"></td>
+                <td><input class="form-control" type="text" id="inputdefault" name="reward_description_input"></td>
+                <td><button type="submit" name="addNewReward" class="btn btn-primary">Add New Reward</button></td>
+            </tr>
+            <!-- End new rewards input-->
+
+        </table>
+    </form>
+
+    <?php
+    
+
+        //Insert Reward Data
+        if (isset($_POST['addNewReward'])) {
+            $rewardName = $_POST['reward_name_input'];
+            $rewardDescription = $_POST['reward_description_input'];
+
+            try {
+                $queryReward = 'INSERT INTO reward_library(reward_name, description, household_id)
+                                VALUES(:rewardName, :rewardDescription, :householdID)';
+
+                $statement = $db->prepare($queryReward);
+
+                $statement->bindValue(':rewardName', $rewardName);
+                $statement->bindValue(':rewardDescription', $rewardDescription);
+                $statement->bindValue(':householdID', $householdID);
+                $statement->execute();
+            } catch (Exception $ex) {
+                // Please be aware that you don't want to output the Exception message in
+                // a production environment
+                echo "Error with DB. Details: $ex";
+                die();
+            }
+            echo "<meta http-equiv='refresh' content='0'>";
+        }
+
+    $countDelete = 0;
+
+    //Checks which delete button was pushed
+    foreach ($rewardIDBtns as $rewardIDbtn) {
+
+        if (isset($_POST[strval($rewardIDbtn)])) {
+            $queryReward = 'DELETE FROM reward_library WHERE reward_id = :rewardID';
+            $statement = $db->prepare($queryReward);
+            $statement->bindValue(':rewardID', $rewardIDs[$countDelete]);
+            $statement->execute();
+            echo "<meta http-equiv='refresh' content='0'>";
+        }
+        $countDelete++;
+    }
+
+    //Checks which update button was pushed
+    $countUpdate = 0;
+
+    foreach ($rewardUpdateBtns as $rewardUpdateBtn) {
+
+        if (isset($_POST[$rewardUpdateBtn])) {
+            $rewardName = $_POST['reward_name_input' . $rewardIDs[$countUpdate]];
+            $rewardDescription = $_POST['reward_description_input' . $rewardIDs[$countUpdate]];
+            $queryReward = 'UPDATE reward_library 
+                    SET reward_name = :rewardName, description = :rewardDescription 
+                    WHERE reward_id = :rewardID AND household_id = :householdID'; //Need to udpate to use hosuehold_id based on current logged on user
+            $statement = $db->prepare($queryReward);
+            $statement->bindValue(':rewardName', $rewardName);
+            $statement->bindValue(':rewardDescription', $rewardDescription);
+            $statement->bindValue(':rewardID', $rewardIDs[$countUpdate]);
+            $statement->bindValue(':householdID', $householdID);
+            $statement->execute();
+            echo "<meta http-equiv='refresh' content='0'>";
+        }
+        $countUpdate++;
+    }
+    ?>
+    <!-- End Rewards Table-->
+    <br><br>
     <!-- Start Chores Table-->
-    <h1>Chore Library</h1>
+    <h1 style="background-image: url('Darkwood_Plank.jpg')">Chore Library</h1>
+    <h2>Add chores here. You must have at least one reward in the reward library to add chores.<h2>
+    <h2>To make updates, edit the text and click the "udpate" button for the row you want to update.</h2>
     <form id="choresForm" method="post" action="choreLibrary.php">
         <table class="table">
             <tr>
                 <th>Chore Name</th>
                 <th>Description</th>
-                <th>XP Reward</th>
+                <th>XP Reward (minutes to complete)</th>
                 <th>Reward</th>
                 <th>Action</th>
             </tr>
@@ -39,7 +187,7 @@
                     ON chore_library.reward_library_id=reward_library.reward_id
                     LEFT JOIN public.household
                     ON chore_library.household_id=household.id
-                    Where household.name_of_household = \'Smith\'
+                    Where household.id = ' . $householdID . '
                     ORDER BY chore_library.chore_name'
             );
             $choreStatement->execute();
@@ -84,7 +232,7 @@
                                     FROM reward_library
                                     LEFT JOIN public.household
                                     ON reward_library.household_id=household.id
-                                    Where household.name_of_household = \'Smith\'
+                                    Where household.id = ' . $householdID . '
                                     ORDER BY reward_library.reward_name'
                                 );
                                 $rewardstatement->execute();
@@ -95,7 +243,7 @@
                                 }
                         
                     echo "</select></td>
-                            <td><button type=\"submit\" class=\"btn btn-primary\" name=$choreID>Delete</button><button type=\"submit\" class=\"btn btn-primary\" name=$choreUpdateBtn>Update</button></td>
+                            <td><button type=\"submit\" class=\"btn btn-danger\" name=$choreID>Delete</button><span>-</span><button type=\"submit\" class=\"btn btn-warning\" name=$choreUpdateBtn>Update</button></td>
                         </tr>
                     ";
             }
@@ -108,13 +256,15 @@
                 <td><input class="form-control" type="number" id="inputdefault" name="chore_xp_reward_input"></td>
                 <td><select class="form-control" id="inputdefault" name="rewards_input">
                         <?php
+
+                        //Reward drop down
                         $rewardstatement = $db->prepare(
-                            'SELECT reward_library.reward_id, reward_library.reward_name, reward_library.description, household.id, 
-                                household.name_of_household
+                            'SELECT reward_library.reward_id, reward_library.reward_name, reward_library.description, 
+                                household.id, household.name_of_household
                             FROM reward_library
                             LEFT JOIN public.household
                             ON reward_library.household_id=household.id
-                            Where household.name_of_household = \'Smith\'
+                            Where household.id = ' . $householdID . '
                             ORDER BY reward_library.reward_name'
                         );
                         $rewardstatement->execute();
@@ -125,45 +275,54 @@
                         ?>
                     </select></td>
                 <td><button type="submit" name="addNewChore" class="btn btn-primary">Add New Chore</button></td>
+
             </tr>
             <!-- End New Chores input row-->
         </table>
     </form>
 
     <?php
-        //Insert Chore Data
+    //Insert Chore Data
     if (isset($_POST['addNewChore'])) {
-        $choreName = $_POST['chore_name_input'];
-        $choreDescription = $_POST['chore_description_input'];
-        $isRepeatable = TRUE; //Implement later
-        $xpReward = $_POST['chore_xp_reward_input'];
-        //$reward = $_POST['rewards_input'];
-        $rewardLibraryID = $_POST['rewards_input'];
-        $householdID = 1; //TODO: Update to use current logged in user household_id
 
-        //echo "Chore: " . $choreName . " Desc: " . $choreDescription . " XP: " . $xpReward . " Reward: " . $reward . " Reward ID: " . $rewardLibraryID . "<br>";
+        //Checking for no rewards in library
+        $query = "SELECT reward_library.reward_id, reward_library.reward_name
+            FROM reward_library
+            WHERE household_id = '$householdID'";
+        $rewardStatement = $db->prepare($query);
+        $rewardStatement->execute();
 
-        try {
-            $queryChore = 'INSERT INTO chore_library(chore_name, description, is_repeatable, xp_reward, reward_library_id, household_id)
+        if ($rewardStatement->rowCount() > 0) {
+            $choreName = $_POST['chore_name_input'];
+            $choreDescription = $_POST['chore_description_input'];
+            $isRepeatable = TRUE; //Implement later
+            $xpReward = $_POST['chore_xp_reward_input'];
+            $rewardLibraryID = $_POST['rewards_input'];
+
+            try {
+                $queryChore = 'INSERT INTO chore_library(chore_name, description, is_repeatable, xp_reward, reward_library_id, 
+                                household_id)
                             VALUES(:choreName, :choreDescription, :isRepeatable, :xpReward, :rewardLibraryID, :householdID)';
 
-            $statement = $db->prepare($queryChore);
+                $statement = $db->prepare($queryChore);
 
-            $statement->bindValue(':choreName', $choreName);
-            $statement->bindValue(':choreDescription', $choreDescription);
-            $statement->bindValue(':isRepeatable', $isRepeatable);
-            $statement->bindValue(':xpReward', $xpReward);
-            $statement->bindValue(':rewardLibraryID', $rewardLibraryID);
-            $statement->bindValue(':householdID', $householdID);
-            $statement->execute();
-
-        } catch (Exception $ex) {
-            // Please be aware that you don't want to output the Exception message in
-            // a production environment
-            echo "Error with DB. Details: $ex";
-            die();
+                $statement->bindValue(':choreName', $choreName);
+                $statement->bindValue(':choreDescription', $choreDescription);
+                $statement->bindValue(':isRepeatable', $isRepeatable);
+                $statement->bindValue(':xpReward', $xpReward);
+                $statement->bindValue(':rewardLibraryID', $rewardLibraryID);
+                $statement->bindValue(':householdID', $householdID);
+                $statement->execute();
+            } catch (Exception $ex) {
+                // Please be aware that you don't want to output the Exception message in
+                // a production environment
+                echo "Error with DB. Details: $ex";
+                die();
+            }
+            echo "<meta http-equiv='refresh' content='0'>";
+        } else {
+            echo "You need to add a reward to the library first<br>";
         }
-        echo "<meta http-equiv='refresh' content='0'>";
     }
 
     //Delete Chore Data
@@ -171,10 +330,6 @@
     foreach ($choreIDBtns as $choreIDbtn) {
 
         if (isset($_POST[strval($choreIDbtn)])) {
-            /*echo "Deleted btn " . $choreIDbtn;
-                    echo "<br>";
-                    echo "Deleted id " . $choreIDs[$countDelete];
-                    echo "<br>";*/
             $queryReward = 'DELETE FROM chore_library WHERE chore_id = :choreID';
             $statement = $db->prepare($queryReward);
             $statement->bindValue(':choreID', $choreIDs[$countDelete]);
@@ -195,14 +350,12 @@
             $choreIsRepeatable = TRUE;
             $choreXPReward = $_POST['chore_xp_reward_input' . $choreIDs[$countUpdate]];
             $choreRewardLibraryID = $_POST['update_rewards_input' . $choreIDs[$countUpdate]];
-            $householdID = 1; //Need to udpate to use hosuehold_id based on current logged on user
             $choreID = $choreIDs[$countUpdate];
-
-            //echo "Chore: " . $choreName . " Desc: " . $choreDescription . " XP: " . $choreXPReward .  " Reward ID: " . $choreRewardLibraryID . "<br>";
             
             $queryChore = 'UPDATE chore_library 
-                    SET chore_name = :choreName, description = :choreDescription, is_repeatable = :choreIsRepeatable, xp_reward = :choreXPReward, reward_library_id = :choreRewardLibraryID
-                    WHERE chore_id = :choreID AND household_id = :householdID'; //Need to udpate to use hosuehold_id based on current logged on user
+                    SET chore_name = :choreName, description = :choreDescription, is_repeatable = :choreIsRepeatable, 
+                        xp_reward = :choreXPReward, reward_library_id = :choreRewardLibraryID
+                    WHERE chore_id = :choreID AND household_id = :householdID';
             $statement = $db->prepare($queryChore);
             $statement->bindValue(':choreName', $choreName);
             $statement->bindValue(':choreDescription', $choreDescription);
@@ -219,149 +372,7 @@
     
     ?>
 
-    <br><br>
-    <!-- End Chores Table-->
-
-    <!-- Start Rewards Table-->
-    <h1>Reward Library</h1>
-    <form id="rewardsForm" method="post" action="choreLibrary.php">
-        <table class="table">
-            <thead>
-                <th scope="col">Reward</th>
-                <th scope="col">Description</th>
-                <th scope="col">Action</th>
-            </thead>
-
-            <?php
-            $rewardstatement = $db->prepare(
-                'SELECT reward_library.reward_id, reward_library.reward_name, reward_library.description, household.id, 
-                        household.name_of_household
-                        FROM reward_library
-                        LEFT JOIN public.household
-                        ON reward_library.household_id=household.id
-                        Where household.name_of_household = \'Smith\'
-                        ORDER BY reward_library.reward_name'
-            );
-            $rewardstatement->execute();
-
-
-            $rewardIDBtns = []; //Array for dynamic delete button names
-            $rewardUpdateBtns = []; //array for dyanmic update buttons
-            $rewardIDs = [];    //Array for available reward ids
-            $updateRewardNames = [];
-            $updateRewardDescriptions = [];
-
-            //Creates the table with buttons
-            while ($row = $rewardstatement->fetch(PDO::FETCH_ASSOC)) {
-                //builds dynamic buttons
-                array_push($rewardIDBtns, "delete_reward" . $row['reward_id']);
-                array_push($rewardUpdateBtns, "update_reward" . $row['reward_id']);
-                array_push($rewardIDs, $row['reward_id']);
-                array_push($updateRewardNames, $row['reward_name']);
-                array_push($updateRewardDescriptions, $row['description']);
-
-                //Variables for form input data
-                $rewardID = "delete_reward" . $row['reward_id'];
-                $rewardUpdateBtn = "update_reward" . $row['reward_id'];
-                $updateRewardName = "reward_name_input" . $row['reward_id'];
-                $updateRewardDescription = "reward_description_input" . $row['reward_id'];
-                $valueName = $row['reward_name'];
-                $valueDescription = $row['description'];
-
-                echo "
-                        <tr>
-                            <td><input class=\"form-control\" type=\"text\" id=\"inputdefault\" name=$updateRewardName value=\"" . $valueName . "\"></td>
-                            <td><input class=\"form-control\" type=\"text\" id=\"inputdefault\" name=$updateRewardDescription value=\"" . $valueDescription . "\"></td>
-                            <td><button type=\"submit\" class=\"btn btn-primary\" name=$rewardID>Delete</button><button type=\"submit\" class=\"btn btn-primary\" name=$rewardUpdateBtn>Update</button></td>
-                        </tr>
-                    ";
-            }
-            ?>
-            <!-- Start new rewards input -->
-            <tr>
-                <td><input class="form-control" type="text" id="inputdefault" name="reward_name_input"></td>
-                <td><input class="form-control" type="text" id="inputdefault" name="reward_description_input"></td>
-                <td><button type="submit" name="addNewReward" class="btn btn-primary">Add New Reward</button></td>
-            </tr>
-
-            <!-- End new rewards input-->
-
-        </table>
-
-    </form>
-
-    <?php
     
-
-        //Insert Reward Data
-        if (isset($_POST['addNewReward'])) {
-            $rewardName = $_POST['reward_name_input'];
-            $rewardDescription = $_POST['reward_description_input'];
-            $householdID = 1; //TODO: Update to use current logged in user household_id
-
-            try {
-                $queryReward = 'INSERT INTO reward_library(reward_name, description, household_id)
-                                VALUES(:rewardName, :rewardDescription, :householdID)';
-
-                $statement = $db->prepare($queryReward);
-
-                $statement->bindValue(':rewardName', $rewardName);
-                $statement->bindValue(':rewardDescription', $rewardDescription);
-                $statement->bindValue(':householdID', $householdID);
-                $statement->execute();
-            } catch (Exception $ex) {
-                // Please be aware that you don't want to output the Exception message in
-                // a production environment
-                echo "Error with DB. Details: $ex";
-                die();
-            }
-            echo "<meta http-equiv='refresh' content='0'>";
-        }
-
-    $countDelete = 0;
-
-    //Checks which delete button was pushed
-    foreach ($rewardIDBtns as $rewardIDbtn) {
-
-        if (isset($_POST[strval($rewardIDbtn)])) {
-            /* echo "Deleted btn " . $rewardIDbtn;
-                    echo "<br>";
-                    echo "Deleted id " . $rewardIDs[$countDelete];
-                    echo "<br>"; */
-            $queryReward = 'DELETE FROM reward_library WHERE reward_id = :rewardID';
-            $statement = $db->prepare($queryReward);
-            $statement->bindValue(':rewardID', $rewardIDs[$countDelete]);
-            $statement->execute();
-            echo "<meta http-equiv='refresh' content='0'>";
-        }
-        $countDelete++;
-    }
-
-    //Checks which update button was pushed
-    $countUpdate = 0;
-
-    foreach ($rewardUpdateBtns as $rewardUpdateBtn) {
-
-        if (isset($_POST[$rewardUpdateBtn])) {
-            $rewardName = $_POST['reward_name_input' . $rewardIDs[$countUpdate]];
-            $rewardDescription = $_POST['reward_description_input' . $rewardIDs[$countUpdate]];
-            $householdID = 1; //Need to udpate to use hosuehold_id based on current logged on user
-            $queryReward = 'UPDATE reward_library 
-                    SET reward_name = :rewardName, description = :rewardDescription 
-                    WHERE reward_id = :rewardID AND household_id = :householdID'; //Need to udpate to use hosuehold_id based on current logged on user
-            $statement = $db->prepare($queryReward);
-            $statement->bindValue(':rewardName', $rewardName);
-            $statement->bindValue(':rewardDescription', $rewardDescription);
-            $statement->bindValue(':rewardID', $rewardIDs[$countUpdate]);
-            $statement->bindValue(':householdID', $householdID);
-            $statement->execute();
-            echo "<meta http-equiv='refresh' content='0'>";
-        }
-        $countUpdate++;
-    }
-
-    ?>
-    <!-- End Rewards Table-->
+    <!-- End Chores Table-->
 </body>
-
 </html>

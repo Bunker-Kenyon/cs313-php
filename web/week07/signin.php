@@ -1,6 +1,5 @@
 <?php
 session_start();
-include(dirname(__DIR__).'/rsc/nav.php');  
 include(dirname(__DIR__).'/rsc/dbConnection.php');
 $db = get_db();
   
@@ -10,30 +9,27 @@ if (isset($_SESSION['id'])) {
 }
   
 $error_message = '';
-$userEmail = '';
-
 if (isset($_POST['submit'])) {
  
     extract($_POST);
  
     if (!empty($email) && !empty($password)) {
         
-        $query = 'SELECT id, email, password, household_id FROM public.users WHERE email = :email';
+
+        $query = 'SELECT id, email, password FROM public.w7users WHERE email = :email';
         $statement = $db->prepare($query);
+        
 
         $statement->bindValue(':email', $email);
+        //$statement->bindValue(':password', $hashedPassword);
         $statement->execute();
+        $userData = $statement->fetch(PDO::FETCH_ASSOC);
+        $statement->closeCursor();
+
+        $hashCheck = password_verify($password, $userData['password']);
   
         if ($statement->rowCount() > 0) {
-            $_SESSION['userEmail'] = $userEmail;
-            
-            while ($row = $statement->fetch(PDO::FETCH_ASSOC)) { 
-                
-                $_SESSION['userId'] = $row['id'];
-                $_SESSION['userHouseholdID'] = $row['household_id'];
-            }
-            
-            header('Location: choreBoard.php');
+            header('Location: welcome.php');
 
         } else {
             $error_message = 'Incorrect email or password.';
@@ -46,15 +42,11 @@ if (isset($_POST['submit'])) {
 <!DOCTYPE html>
 <html>
     <head>
-        <title>Chore Board: Login</title>
+        <title>Login Form</title>
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
         <link rel="stylesheet" type="text/css" href="stickyNotes.css">
     </head>
     <body>
-    <div class="jumbotron" style="background-image: url('Darkwood_Plank.jpg')">
-        <h1>Family Chores and To do Board</h1>
-  </div>
-  <?php include('choreBoardNav.php'); ?>
     <div class="d-flex align-items-center justify-content-center" style="height: 350px">
             <div class="row">
                 <div class="col-md-20">
@@ -72,10 +64,7 @@ if (isset($_POST['submit'])) {
                             <input type="password" class="form-control" id="exampleInputPassword1" name="password" placeholder="Password" required />
                         </div>
                         <button type="submit" name="submit" class="btn btn-primary">Submit</button>
-                        
-                        
                     </form>
-                        <a href="signup.php" class="text-primary">Register</a>
                 </div>
             </div>
         </div>

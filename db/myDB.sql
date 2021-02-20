@@ -177,3 +177,14 @@ DELETE FROM chore_library
 DELETE FROM reward_library
     WHERE id = 4;
 
+--Insert chores from chores library into chores table
+INSERT INTO chores (chore_name, description, is_repeatable, xp_reward, rewards_id, household_id)
+SELECT chore_name, description, is_repeatable, xp_reward, reward_library_id, household_id
+FROM chore_library
+WHERE chore_id = 27;
+
+--Assign a chore to a user.
+INSERT INTO chores (chore_name, description, is_repeatable, xp_reward, rewards_id, household_id, assigned_to_user_id)
+	  SELECT chore_name, description, is_repeatable, xp_reward, reward_library_id, household_id, (SELECT users.id FROM users WHERE id = 3)
+	  FROM chore_library
+	  WHERE chore_id = 29;
